@@ -20,8 +20,8 @@ const activeCampaignSchema = new Schema({
         default: Date.now
     },
     daysRemaining: Number,
-    dailyDistance: Decimal128,
-    totalDistance: Decimal128,
+    dailyDistance: Number,
+    totalDistance: Number,
     totalIncome: Number,
     dailyRoutes: [{
         type: Object

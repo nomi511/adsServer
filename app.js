@@ -6,15 +6,10 @@ const campaigns = require('./routes/campaign')
 const activeCampaigns = require('./routes/activeCampaign')
 require('dotenv').config()
 const rateLimit = require('express-rate-limit')
+const {isAuthenticated} = require('./middlewares/auth')
 const app = express()
 
-
 app.use(express.json())
-
-// app.get('/api/v1/', (req,res)=>{
-//     res.send("wow requested")
-// })
-
 
 // api requests limit
 app.use(rateLimit({
@@ -29,10 +24,10 @@ app.use(rateLimit({
 app.use('/api/v1/users', users)
 
 // campaign route
-app.use('/api/v1/campaign', campaigns)
+app.use('/api/v1/campaign', isAuthenticated,campaigns)
 
 // active campagins route
-app.use('/api/v1/activeCampaign', activeCampaigns)
+app.use('/api/v1/activeCampaign', isAuthenticated,activeCampaigns)
 
 
 

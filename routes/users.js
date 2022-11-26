@@ -17,7 +17,7 @@ const uploads = require('../helper/multer')
 
 
 
-router.route('/').get(getAllUsers)
+router.route('/').get(isAuthenticated, getAllUsers)
 router.route('/register').post(validateRegistration, userValidation, registerUser)
 router.route('/login').post(validateLogin, userValidation, loginUser)
 router.route('/:id').get(isAuthenticated, getSingleUser).patch(updateUser).delete(deleteUser)
