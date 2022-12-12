@@ -1,4 +1,4 @@
-const {isvalidObjectId} = require('mongoose')
+const {isValidObjectId} = require('mongoose')
 const User = require('../models/user')
 const ResetToken = require('../models/resetToken')
 
@@ -10,11 +10,11 @@ exports.isResetTokenValid = async(req, res, next)=>{
     }
 
 
-    if(!isvalidObjectId(id)){
+    if(!isValidObjectId(id)){
         return res.json({success: false, message: 'Invalid User!'})
     }
 
-    const user = await User.findOne(id)
+    const user = await User.findOne({id})
     if(!user){
         return res.json({success: false, message: 'User not found!'})
     }
@@ -24,7 +24,7 @@ exports.isResetTokenValid = async(req, res, next)=>{
         return res.json({success: false, message: 'Reset Token not found!'})
     }
 
-    const isValid = await ResetToken.compareToken(token)
+    const isValid = await resetToken.compareToken(token)
     if(!isValid){
         return res.json({success: false, message: 'Reset Token invalid!'})
     }

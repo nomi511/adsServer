@@ -286,6 +286,10 @@ const resetPassword = async(req,res)=>{
         return res.json({success: false, message: 'Password must be atleast 8 characters long!'})
     }
 
+
+    user.password = password.trim()
+    await user.save()
+
     await ResetToken.findOneAndDelete({owner: user._id})
 
     const mailOptions = {
