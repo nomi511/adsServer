@@ -1,15 +1,11 @@
 const express = require('express')
 const router = express.Router()
-const {getAllUsers, getSingleUser, registerUser, loginUser, updateUser, deleteUser, profileData} = require('../controllers/users')
+const {getAllUsers, getSingleUser, registerUser, loginUser, updateUser, deleteUser, profileData, forgotPassword, resetPassword} = require('../controllers/users')
 const {validateRegistration, validateLogin, userValidation} = require('../middlewares/validation/user')
 const {isAuthenticated} = require('../middlewares/auth')
+const {isResetTokenValid} = require('../middlewares/validateToken')
 
 const uploads = require('../helper/multer')
-
-
-
-
-
 
 
 
@@ -21,6 +17,11 @@ router.route('/').get(isAuthenticated, getAllUsers)
 router.route('/register').post(validateRegistration, userValidation, registerUser)
 router.route('/login').post(validateLogin, userValidation, loginUser)
 router.route('/:id').get(isAuthenticated, getSingleUser).patch(updateUser).delete(deleteUser)
+router.route('/forgot-password').post(forgotPassword)
+router.route('/reset-password').post(isResetTokenValid, resetPassword)
+router.route('/verify-resetToken').get(isResetTokenValid, (req, res)=>{
+    return res.json({success: true, message: ''})
+} )
 
 
 // profile image

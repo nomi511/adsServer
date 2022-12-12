@@ -3,7 +3,25 @@ const jwt = require('jsonwebtoken')
 const cloudinary = require('../helper/imageUpload')
 
 
+// email reset
+const ResetToken = require('../models/resetToken')
+const {createRandomBytes} = require('../helper')
+const nodemailer = require('nodemailer')
+//---------------
 
+
+
+
+// transporter for sending emails using gmail
+const transporter = nodemailer.createTransport({
+    service: "gmail",
+    host: "smtp.gmail.com",
+    secure: true,
+    auth:{
+        user: 'contactawlasolutions@gmail.com',
+        pass: 'ujnieovdcrhljmgz'
+    }
+});
 
 
 
@@ -65,7 +83,12 @@ const updateUser = async(req, res)=>{
     const data = req.body
     try {
         const user = await User.findByIdAndUpdate(id, data)
-        res.json({success: true, message:'User updated successfully'})
+        if(user){
+            res.json({success: true, message:'User updated successfully'})
+        }else{
+            res.json({success: false, message: 'User not found!'})
+        }
+        
     } catch (error) {
         res.send({success: false, message:`Failed to update user! ${error}`})
     }
@@ -182,9 +205,13 @@ const deleteUser = async(req, res)=>{
         })
        
 
-        await User.findByIdAndUpdate(user._id, data)
+        const updates = await User.findByIdAndUpdate(user._id, data)
+        if(updates){
+            res.status(201).json({success: true, message: 'Profile image has updated!'})
+        }else{
+            res.json({success: false, message: 'User not found!'})
+        }
         
-        res.status(201).json({success: true, message: 'Profile image has updated!'})
     } catch (error) {
         res.status(500).json({success: false, message: 'Internal server error. Try again'})
         console.log("Error uploading image. ", error.message) 
@@ -193,6 +220,95 @@ const deleteUser = async(req, res)=>{
 }
 
 
+
+const forgotPassword = async(req,res)=>{
+    const {email} = req.body
+    if(!email){
+        req.json({
+            success: false,
+            message: 'Please provide email!'
+        })
+    }
+
+    const user = await User.findOne({email})
+
+    if(!user){
+        res.json({success: false, message: 'User not found!'})
+    }
+
+    const token = await ResetToken.findOne({owner: user._id})
+    if(token){
+        res.json({success: false, message: 'Please wait for 30 minutes before trying again.'})
+    }
+
+    const newToken = await createRandomBytes()
+
+    const resetToken = await ResetToken.create({owner: user._id, token: newToken})
+
+    
+    
+    const mailOptions = {
+        form: `contactawlasolutions@gmail.com`,
+        to: 'nk515605@gmail.com',
+        subject: 'test email',
+        text: `this is your link to reset the passwor\n\n\t LINK: http://localhost:3000/reset-password?token=${newToken}&id=${user._id}`
+    }
+    
+    transporter.sendMail(mailOptions, (error, info)=>{
+        if(error){
+            console.log(error)
+            res.send('error sending email')
+        }else{
+            console.log('success: ', info)
+            res.json({success: true, message: 'Email sent successfully.'})
+        }
+        
+    })
+    
+
+}
+
+
+const resetPassword = async(req,res)=>{
+    const {password} = req.body
+
+    const user = await User.findById(req.user._id)
+    if(!user){
+        return res.json({success: false, message: 'User not found!'})
+    }
+
+    const isSamePassword = await user.comparePassword(password)
+    if(isSamePassword){
+        return res.json({success: false, message: 'New password must be different from the current one.'})
+    }
+
+    if(password.trim().length<8){
+        return res.json({success: false, message: 'Password must be atleast 8 characters long!'})
+    }
+
+    await ResetToken.findOneAndDelete({owner: user._id})
+
+    const mailOptions = {
+        form: `contactawlasolutions@gmail.com`,
+        to: 'nk515605@gmail.com',
+        subject: 'test email',
+        text: `Password changed successfully.`
+    }
+    
+    transporter.sendMail(mailOptions, (error, info)=>{
+        if(error){
+            console.log(error)
+            res.send('error sending email')
+        }else{
+            console.log('success: ', info)
+            res.json({success: true, message: 'Password reset and Email sent successfully.'})
+        }
+        
+    })
+
+
+}
+
 module.exports = {
     getAllUsers,
     getSingleUser,
@@ -200,5 +316,7 @@ module.exports = {
     loginUser,
     updateUser,
     deleteUser,
-    profileData
+    profileData,
+    forgotPassword,
+    resetPassword
 }

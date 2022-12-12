@@ -41,7 +41,12 @@ const updateActiveCampaign = async(req, res)=>{
     const data = req.body
     try {
         const ncmp = await ActiveCampaign.findByIdAndUpdate(id, data)
-        res.json({success: true, message: 'Successfully updated active campaign!'})
+        if(ncmp){
+            res.json({success: true, message: 'Successfully updated active campaign!'})
+        }else{
+            res.json({success:false, message: 'Active campagin not found!'})
+        }
+        
     } catch (error) {
         res.json({success: false, message: 'Failed to updated active campaign! Please try again.'})
     }
@@ -57,12 +62,17 @@ const updateDailyRoute = async(req,res) => {
             coords: reqData.dailyRoutes.coords
         }
         const ncmp = await ActiveCampaign.updateOne(
-                {_id: id},
-                {
-                    $push:{dailyRoutes: data}
-                }
-            )
-        res.json({success: true, message: 'Successfully updated daily route.'})
+            {_id: id},
+            {
+                $push:{dailyRoutes: data}
+            }
+        )
+        if(ncmp){
+            res.json({success: true, message: 'Successfully updated daily route.'})
+        }else{
+            res.json({success: false, message: 'Active Campaign not found!'})
+        }
+        
     } catch (error) {
         res.json({success: false, message: 'Failed to updated daily route! Please try again.'})
     }

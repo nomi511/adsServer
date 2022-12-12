@@ -96,7 +96,12 @@ const updateCampaign = async(req,res)=>{
     const data = req.body
     try {
         const cmp = await Campaign.findByIdAndUpdate(id, data)
-        res.json({success:true, message: 'Successfully updated campaign'})
+        if(cmp){
+            res.json({success:true, message: 'Successfully updated campaign'})
+        }else {
+            res.json({success: false, message: 'Campaign not found!'})
+        }
+        
     } catch (error) {
         res.send({success: false, message: 'Failed to update campaign'})
     }
