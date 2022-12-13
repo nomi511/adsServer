@@ -10,18 +10,14 @@ const nodemailer = require('nodemailer')
 //---------------
 
 
+// confirm email
+const {generateOTP} = require('../helper')
+const ConfirmToken = require('../models/confirmEmail')
+const {isValidObjectId} = require('mongoose')
 
 
 // transporter for sending emails using gmail
-const transporter = nodemailer.createTransport({
-    service: "gmail",
-    host: "smtp.gmail.com",
-    secure: true,
-    auth:{
-        user: 'contactawlasolutions@gmail.com',
-        pass: 'ujnieovdcrhljmgz'
-    }
-});
+const {transporter} = require('../helper')
 
 
 
@@ -56,11 +52,96 @@ const registerUser = async(req, res)=>{
         })
     }
 
-    const newUser = await User.create(req.body)
+    const newUser = new User(req.body)
+    
 
-    const token = jwt.sign({userID: newUser._id}, process.env.JWT_SECRET, {expiresIn: '1d'})
+    const OTP = generateOTP()
 
-    res.status(201).json({success: 'true', message: token})
+    const verificationToken = new ConfirmToken({owner: newUser._id, token: OTP})
+    await verificationToken.save();
+
+    await newUser.save();
+
+
+    const mailOptions = {
+        form: `contactawlasolutions@gmail.com`,
+        to: 'nk515605@gmail.com',
+        subject: 'Email verification',
+        text: `Your confirmation code is: ${OTP}`
+    }
+    
+    transporter.sendMail(mailOptions, (error, info)=>{
+        if(error){
+            console.log(error)
+            res.send('error sending email')
+        }else{
+            console.log('success: ', info)
+            res.json({success: true, message: 'Confirmation code is sent to your email address.'})
+        }
+        
+    })
+
+    //const token = jwt.sign({userID: newUser._id}, process.env.JWT_SECRET, {expiresIn: '1d'})
+    //res.status(201).json({success: 'true', message: token})
+}
+
+const verifyEmail = async(req,res)=>{
+    const {userID, OTP} = req.body
+
+    if(!userID || !OTP.trim()){
+        return res.json({success: false, message: 'Invalid Request!, Missing parameters'})
+    }
+
+    if(!isValidObjectId(userID)){
+        return res.json({success: false, message: 'Invalid user id!'})
+    }
+
+    const user = await User.findById(userID)
+    if(!user){
+        return res.json({success:false, message: 'No user found!'})
+    }
+
+    if(user.emailVerified){
+        return res.json({success:false, message: 'User email already verified!'})
+    }
+
+    const token = await ConfirmToken.findOne({owner: user._id})
+    if(!token){
+        res.json({success: false, message: 'Sorry! User not found! Register again.'})
+    }
+
+
+    const isMatch = await token.compareToken(OTP)
+
+    if(!isMatch){
+        return res.json({success: false, message: 'The token does not match! Please provid a valid token.'})
+    }
+
+    user.emailVerified = true
+
+    await ConfirmToken.findByIdAndDelete(token._id)
+    await user.save()
+
+    const mailOptions = {
+        form: `contactawlasolutions@gmail.com`,
+        to: 'nk515605@gmail.com',
+        subject: 'Email Verification',
+        text: `Email verified successfully.`
+    }
+    
+    transporter.sendMail(mailOptions, (error, info)=>{
+        if(error){
+            console.log(error)
+            res.send('error sending email')
+        }else{
+            console.log('success: ', info)
+            res.json({success: true, message: 'Email verified successfully.'})
+        }
+        
+    })
+
+
+
 }
 
 const loginUser = async(req, res)=>{
@@ -219,8 +300,6 @@ const deleteUser = async(req, res)=>{
  
 }
 
-
-
 const forgotPassword = async(req,res)=>{
     const {email} = req.body
     if(!email){
@@ -250,7 +329,7 @@ const forgotPassword = async(req,res)=>{
     const mailOptions = {
         form: `contactawlasolutions@gmail.com`,
         to: 'nk515605@gmail.com',
-        subject: 'test email',
+        subject: 'Password Reset',
         text: `this is your link to reset the passwor\n\n\t LINK: http://localhost:3000/reset-password?token=${newToken}&id=${user._id}`
     }
     
@@ -267,7 +346,6 @@ const forgotPassword = async(req,res)=>{
     
 
 }
-
 
 const resetPassword = async(req,res)=>{
     const {password} = req.body
@@ -295,7 +373,7 @@ const resetPassword = async(req,res)=>{
     const mailOptions = {
         form: `contactawlasolutions@gmail.com`,
         to: 'nk515605@gmail.com',
-        subject: 'test email',
+        subject: 'Password Changed',
         text: `Password changed successfully.`
     }
     
@@ -313,14 +391,22 @@ const resetPassword = async(req,res)=>{
 
 }
 
+
+const userHelp = async(req,res)=>{
+    
+}
+
+
 module.exports = {
     getAllUsers,
     getSingleUser,
     registerUser,
+    verifyEmail,
     loginUser,
     updateUser,
     deleteUser,
     profileData,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    userHelp
 }

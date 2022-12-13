@@ -1,6 +1,6 @@
 const express = require('express')
 const router = express.Router()
-const {getAllUsers, getSingleUser, registerUser, loginUser, updateUser, deleteUser, profileData, forgotPassword, resetPassword} = require('../controllers/users')
+const {getAllUsers, getSingleUser, registerUser, loginUser, updateUser, deleteUser, profileData, forgotPassword, resetPassword, userHelp} = require('../controllers/users')
 const {validateRegistration, validateLogin, userValidation} = require('../middlewares/validation/user')
 const {isAuthenticated} = require('../middlewares/auth')
 const {isResetTokenValid} = require('../middlewares/validateToken')
@@ -21,7 +21,8 @@ router.route('/forgot-password').post(forgotPassword)
 router.route('/reset-password').post(isResetTokenValid, resetPassword)
 router.route('/verify-resetToken').get(isResetTokenValid, (req, res)=>{
     return res.json({success: true, message: ''})
-} )
+})
+router.route('/help').post(userHelp)
 
 
 // profile image

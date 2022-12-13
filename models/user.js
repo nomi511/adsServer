@@ -37,7 +37,12 @@ const userSchema = new mongoose.Schema({
     totalIncome:Number,
     totalDistance: Decimal128,
     totalDistanceToday: Decimal128,
-    verified: Boolean
+    verified: Boolean,
+    emailVerified: {
+        type: Boolean,
+        default: false,
+        required: true
+    }
 
 })
 
