@@ -6,7 +6,6 @@ const cloudinary = require('../helper/imageUpload')
 // email reset
 const ResetToken = require('../models/resetToken')
 const {createRandomBytes} = require('../helper')
-const nodemailer = require('nodemailer')
 //---------------
 
 
@@ -58,8 +57,8 @@ const registerUser = async(req, res)=>{
     const OTP = generateOTP()
 
     const verificationToken = new ConfirmToken({owner: newUser._id, token: OTP})
+    
     await verificationToken.save();
-
     await newUser.save();
 
 
@@ -73,7 +72,7 @@ const registerUser = async(req, res)=>{
     transporter.sendMail(mailOptions, (error, info)=>{
         if(error){
             console.log(error)
-            res.send('error sending email')
+            res.json({success:false, message: 'Error sending email'})
         }else{
             console.log('success: ', info)
             res.json({success: true, message: 'Confirmation code is sent to your email address.'})
@@ -107,7 +106,7 @@ const verifyEmail = async(req,res)=>{
 
     const token = await ConfirmToken.findOne({owner: user._id})
     if(!token){
-        res.json({success: false, message: 'Sorry! User not found! Register again.'})
+        return res.json({success: false, message: 'Sorry! User not found! Register again.'})
     }
 
 
@@ -117,10 +116,8 @@ const verifyEmail = async(req,res)=>{
         return res.json({success: false, message: 'The token does not match! Please provid a valid token.'})
     }
 
-    user.emailVerified = true
-
-    await ConfirmToken.findByIdAndDelete(token._id)
-    await user.save()
+    await User.findByIdAndUpdate(userID, {emailVerified: true})
+    await ConfirmToken.findByIdAndDelete(token._id);
 
     const mailOptions = {
         form: `contactawlasolutions@gmail.com`,
@@ -132,7 +129,7 @@ const verifyEmail = async(req,res)=>{
     transporter.sendMail(mailOptions, (error, info)=>{
         if(error){
             console.log(error)
-            res.send('error sending email')
+            res.json({success:false, message: 'Error sending email'})
         }else{
             console.log('success: ', info)
             res.json({success: true, message: 'Email verified successfully.'})
@@ -336,7 +333,7 @@ const forgotPassword = async(req,res)=>{
     transporter.sendMail(mailOptions, (error, info)=>{
         if(error){
             console.log(error)
-            res.send('error sending email')
+            res.json({success:false, message: 'Error sending email'})
         }else{
             console.log('success: ', info)
             res.json({success: true, message: 'Email sent successfully.'})
@@ -380,7 +377,7 @@ const resetPassword = async(req,res)=>{
     transporter.sendMail(mailOptions, (error, info)=>{
         if(error){
             console.log(error)
-            res.send('error sending email')
+            res.json({success:false, message: 'Error sending email'})
         }else{
             console.log('success: ', info)
             res.json({success: true, message: 'Password reset and Email sent successfully.'})
