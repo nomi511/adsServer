@@ -4,6 +4,7 @@ const express = require('express')
 const users = require('./routes/users')
 const campaigns = require('./routes/campaign')
 const activeCampaigns = require('./routes/activeCampaign')
+const userHelp = require('./routes/help')
 require('dotenv').config()
 const rateLimit = require('express-rate-limit')
 const {isAuthenticated} = require('./middlewares/auth')
@@ -37,6 +38,9 @@ app.use('/api/v1/campaign', isAuthenticated,campaigns)
 
 // active campagins route
 app.use('/api/v1/activeCampaign', isAuthenticated,activeCampaigns)
+
+// user help
+app.use('/api/v1/user-help', userHelp)
 
 
 

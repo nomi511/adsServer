@@ -42,6 +42,4 @@ resetTokenSchema.methods.compareToken = async function(token){
 
 
 
-
-
 module.exports = mongoose.model('ResetToken', resetTokenSchema)

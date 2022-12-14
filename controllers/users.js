@@ -389,11 +389,6 @@ const resetPassword = async(req,res)=>{
 }
 
 
-const userHelp = async(req,res)=>{
-    
-}
-
-
 module.exports = {
     getAllUsers,
     getSingleUser,
@@ -405,5 +400,4 @@ module.exports = {
     profileData,
     forgotPassword,
     resetPassword,
-    userHelp
 }

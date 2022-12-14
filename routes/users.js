@@ -23,7 +23,6 @@ router.route('/reset-password').post(isResetTokenValid, resetPassword)
 router.route('/verify-resetToken').get(isResetTokenValid, (req, res)=>{
     return res.json({success: true, message: ''})
 })
-router.route('/help').post(userHelp)
 
 
 // profile image
