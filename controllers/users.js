@@ -52,6 +52,7 @@ const registerUser = async(req, res)=>{
     }
 
     const newUser = new User(req.body)
+    console.log(newUser)
     
 
     const OTP = generateOTP()
@@ -71,10 +72,8 @@ const registerUser = async(req, res)=>{
     
     transporter.sendMail(mailOptions, (error, info)=>{
         if(error){
-            console.log(error)
             res.json({success:false, message: 'Error sending email'})
         }else{
-            console.log('success: ', info)
             res.json({success: true, message: 'Confirmation code is sent to your email address.'})
         }
         
@@ -128,10 +127,8 @@ const verifyEmail = async(req,res)=>{
     
     transporter.sendMail(mailOptions, (error, info)=>{
         if(error){
-            console.log(error)
             res.json({success:false, message: 'Error sending email'})
         }else{
-            console.log('success: ', info)
             res.json({success: true, message: 'Email verified successfully.'})
         }
         
@@ -292,7 +289,6 @@ const deleteUser = async(req, res)=>{
         
     } catch (error) {
         res.status(500).json({success: false, message: 'Internal server error. Try again'})
-        console.log("Error uploading image. ", error.message) 
     }
  
 }
@@ -332,10 +328,8 @@ const forgotPassword = async(req,res)=>{
     
     transporter.sendMail(mailOptions, (error, info)=>{
         if(error){
-            console.log(error)
             res.json({success:false, message: 'Error sending email'})
         }else{
-            console.log('success: ', info)
             res.json({success: true, message: 'Email sent successfully.'})
         }
         
@@ -376,10 +370,8 @@ const resetPassword = async(req,res)=>{
     
     transporter.sendMail(mailOptions, (error, info)=>{
         if(error){
-            console.log(error)
             res.json({success:false, message: 'Error sending email'})
         }else{
-            console.log('success: ', info)
             res.json({success: true, message: 'Password reset and Email sent successfully.'})
         }
         
