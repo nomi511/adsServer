@@ -51,6 +51,9 @@ app.use('/api/v1/activeCampaign', isAuthenticated,activeCampaigns)
 app.use('/api/v1/user-help', userHelp)
 
 
+app.get('/', (req,res)=>{
+res.send('server is running......')
+})
 
 
 // sending email link

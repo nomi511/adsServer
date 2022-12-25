@@ -33,7 +33,7 @@ const getAllUsers = async(req, res)=>{
 const getSingleUser = async(req,res) =>{
     const id = req.params.id
     try {
-        const users = await User.find({id})
+        const users = await User.findById(id)
         res.json({success: true, message: users})
     } catch (error) {
         res.json({succes: false, message: 'error getting user from server!!'})
@@ -52,35 +52,33 @@ const registerUser = async(req, res)=>{
     }
 
     const newUser = new User(req.body)
-    console.log(newUser)
+       
+
+    const OTP = await generateOTP()
+
+    const confirmationToken = await ConfirmToken.create({owner: newUser._id, token: OTP})
+    if(confirmationToken){
+	await newUser.save();
+
+    	const token = await jwt.sign({userID: newUser._id}, process.env.JWT_SECRET, {expiresIn: '1d'})
+
+   	 const mailOptions = {
+        	form: `contactawlasolutions@gmail.com`,
+        	to: 'nk515605@gmail.com',
+        	subject: 'Email verification',
+        	text: `Your confirmation code is: ${OTP}`
+    	}
     
-
-    const OTP = generateOTP()
-
-    const verificationToken = new ConfirmToken({owner: newUser._id, token: OTP})
-    
-    await verificationToken.save();
-    await newUser.save();
-
-
-    const mailOptions = {
-        form: `contactawlasolutions@gmail.com`,
-        to: 'nk515605@gmail.com',
-        subject: 'Email verification',
-        text: `Your confirmation code is: ${OTP}`
-    }
-    
-    transporter.sendMail(mailOptions, (error, info)=>{
-        if(error){
-            res.json({success:false, message: 'Error sending email'})
-        }else{
-            res.json({success: true, message: 'Confirmation code is sent to your email address.'})
-        }
+   	 transporter.sendMail(mailOptions, (error, info)=>{
+        	if(error){
+		    console.log(error);
+        	    res.json({success:false, message: 'Error sending email'})
+        	}else{
+        		res.json({success: true, message: 'Confirmation code is sent to your email address.',id: newUser._id, token:token})
+		}
         
-    })
-
-    //const token = jwt.sign({userID: newUser._id}, process.env.JWT_SECRET, {expiresIn: '1d'})
-    //res.status(201).json({success: 'true', message: token})
+	})
+    }
 }
 
 const verifyEmail = async(req,res)=>{
